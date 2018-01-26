@@ -36,9 +36,14 @@
     </ion-list-header>
 
     <ion-item *ngFor="let coin of observableList | async">
-      {{ coin.Currency }}
+      <h2>{{ coin.coin }} / {{ coin.market }}</h2>
+      <p>{{ coin.unitValue | number:'0.0-8'}} / unit</p>
+      <p>{{ coin.balanceBTC | number:'0.0-8' }} BTC</p>
+      <p>{{ coin.estUSD | currency }}</p>
+
       <ion-note item-end>
-        {{coin.Balance | number:'0.0-8'}}
+        {{coin.balance | number:'0.0-8'}}
+        
       </ion-note>
     </ion-item>
   </ion-list>

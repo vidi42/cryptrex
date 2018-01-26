@@ -5,7 +5,7 @@ import * as bittrex from 'node-bittrex-api';
 import { Observable } from 'rxjs/Observable';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject'
 import { Refresher } from 'ionic-angular/components/refresher/refresher';
-
+import { MarketSummary, CoinWatch, AccountBalance } from './domain';
 
 @Component({
   selector: 'page-home',
@@ -13,7 +13,7 @@ import { Refresher } from 'ionic-angular/components/refresher/refresher';
 })
 export class HomePage {
 
-  private _observableList: BehaviorSubject<any[]> = new BehaviorSubject([]);
+  private _observableList: BehaviorSubject<CoinWatch[]> = new BehaviorSubject([]);
   balanceBTC = 0.0;
   estUSD = 0.0;
 
@@ -31,7 +31,7 @@ export class HomePage {
     });
   }
 
-  get observableList(): Observable<any[]> { return this._observableList.asObservable() }
+  get observableList(): Observable<CoinWatch[]> { return this._observableList.asObservable() }
 
   updateBalance(refresher: Refresher) {
 
@@ -50,11 +50,6 @@ export class HomePage {
       if (error) {
         toast.setMessage(error.message).present();
       } else {
-        balanceData.result.forEach(coin => {
-          if (coin.Balance > 0) {
-            coins.push(coin);
-          }
-        });
 
         bittrex.getmarketsummaries((marketData, error) => {
 
@@ -62,15 +57,30 @@ export class HomePage {
             toast.setMessage(error.message).present();
           } else {
 
-            let marketDataMap = new Map(marketData.result.map((i) => [i.MarketName, i]));
+            let marketDataMap = new Map<string, MarketSummary>(marketData.result.map((i) => [i.MarketName, i]));
 
             dollars = marketDataMap.get("USDT-BTC").Last;
 
-            coins.forEach(coin => {
-              if (coin.Currency === "BTC") {
-                bitcoins += coin.Balance;
-              } else if(coin.Currency != "USDT") {
-                bitcoins += coin.Balance * marketDataMap.get("BTC-" + coin.Currency).Last;
+            balanceData.result.forEach((coin: AccountBalance) => {
+
+              if (coin.Balance > 0) {
+
+                let coinWatch: CoinWatch;
+
+                if (coin.Currency === "BTC") {
+                  bitcoins += coin.Balance;
+                  coinWatch = new CoinWatch(coin.Currency, "USDT", coin.Balance, dollars, coin.Balance, coin.Balance * dollars);
+                } else if (coin.Currency != "USDT") {
+                  let unitValue = marketDataMap.get("BTC-" + coin.Currency).Last;
+                  bitcoins += coin.Balance * unitValue;
+                  coinWatch = new CoinWatch(coin.Currency, "BTC", coin.Balance, unitValue, coin.Balance * unitValue, coin.Balance * unitValue * dollars);
+                } else if (coin.Currency === "USDT") {
+                  let unitValue = 1 / dollars;
+                  coinWatch = new CoinWatch(coin.Currency, "BTC", coin.Balance, unitValue, coin.Balance * unitValue, coin.Balance * unitValue * dollars);
+                }
+
+                coins.push(coinWatch);
+
               }
             });
 
