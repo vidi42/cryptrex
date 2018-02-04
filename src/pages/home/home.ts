@@ -6,6 +6,7 @@ import { Observable } from 'rxjs/Observable';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject'
 import { Refresher } from 'ionic-angular/components/refresher/refresher';
 import { MarketSummary, CoinWatch, AccountBalance } from './domain';
+import { BittrexService } from './bittrex.service';
 
 @Component({
   selector: 'page-home',
@@ -17,7 +18,7 @@ export class HomePage {
   balanceBTC = 0.0;
   estUSD = 0.0;
 
-  constructor(public navCtrl: NavController, private storage: Storage, public toastCtrl: ToastController) {
+  constructor(public navCtrl: NavController, private storage: Storage, public toastCtrl: ToastController, public bittrexService: BittrexService) {
 
     this.storage.get('apiCredentials').then((val) => {
       if (val != null) {
@@ -45,58 +46,111 @@ export class HomePage {
     let bitcoins = 0.0;
     let dollars = 0.0;
 
-    bittrex.getbalances((balanceData, error) => {
+    this.bittrexService.getBalances().then(balanceReponse => {
 
-      if (error) {
-        toast.setMessage(error.message).present();
-      } else {
+      this.bittrexService.getMarketSummaries().then(marketSummaryResponse => {
 
-        bittrex.getmarketsummaries((marketData, error) => {
+        let marketSummaryMap = this.bittrexService.convertToMarketSummaryMap(marketSummaryResponse.result);
 
-          if (error) {
-            toast.setMessage(error.message).present();
-          } else {
+        dollars = marketSummaryMap.get("USDT-BTC").Last;
 
-            let marketDataMap = new Map<string, MarketSummary>(marketData.result.map((i) => [i.MarketName, i]));
+        balanceReponse.result.forEach((coin: AccountBalance) => {
 
-            dollars = marketDataMap.get("USDT-BTC").Last;
+          if (coin.Balance > 0) {
 
-            balanceData.result.forEach((coin: AccountBalance) => {
+            let coinWatch: CoinWatch;
 
-              if (coin.Balance > 0) {
+            if (coin.Currency === "BTC") {
+              bitcoins += coin.Balance;
+              coinWatch = new CoinWatch(coin.Currency, "USDT", coin.Balance, dollars, coin.Balance, coin.Balance * dollars);
+            } else if (coin.Currency != "USDT") {
+              let unitValue = marketSummaryMap.get("BTC-" + coin.Currency).Last;
+              bitcoins += coin.Balance * unitValue;
+              coinWatch = new CoinWatch(coin.Currency, "BTC", coin.Balance, unitValue, coin.Balance * unitValue, coin.Balance * unitValue * dollars);
+            } else if (coin.Currency === "USDT") {
+              let unitValue = 1 / dollars;
+              coinWatch = new CoinWatch(coin.Currency, "BTC", coin.Balance, unitValue, coin.Balance * unitValue, coin.Balance * unitValue * dollars);
+            }
 
-                let coinWatch: CoinWatch;
+            coins.push(coinWatch);
 
-                if (coin.Currency === "BTC") {
-                  bitcoins += coin.Balance;
-                  coinWatch = new CoinWatch(coin.Currency, "USDT", coin.Balance, dollars, coin.Balance, coin.Balance * dollars);
-                } else if (coin.Currency != "USDT") {
-                  let unitValue = marketDataMap.get("BTC-" + coin.Currency).Last;
-                  bitcoins += coin.Balance * unitValue;
-                  coinWatch = new CoinWatch(coin.Currency, "BTC", coin.Balance, unitValue, coin.Balance * unitValue, coin.Balance * unitValue * dollars);
-                } else if (coin.Currency === "USDT") {
-                  let unitValue = 1 / dollars;
-                  coinWatch = new CoinWatch(coin.Currency, "BTC", coin.Balance, unitValue, coin.Balance * unitValue, coin.Balance * unitValue * dollars);
-                }
-
-                coins.push(coinWatch);
-
-              }
-            });
-
-            this.balanceBTC = bitcoins;
-            this.estUSD = dollars * bitcoins;
-            this._observableList.next(coins);
           }
         });
 
+        this.balanceBTC = bitcoins;
+        this.estUSD = dollars * bitcoins;
+        this._observableList.next(coins);
 
+        if (refresher != null) {
+          refresher.complete();
+        }
+
+      }, error => {
+        toast.setMessage(error.message).present();
+        if (refresher != null) {
+          refresher.complete();
+        }
+      });
+
+    }, error => {
+      toast.setMessage(error.message).present();
+      if (refresher != null) {
+        refresher.complete();
       }
     });
 
-    if (refresher != null) {
-      refresher.complete();
-    }
+    // bittrex.getbalances((balanceData, error) => {
+
+    //   if (error) {
+    //     toast.setMessage(error.message).present();
+    //   } else {
+
+    //     bittrex.getmarketsummaries((marketData, error) => {
+
+    //       if (error) {
+    //         toast.setMessage(error.message).present();
+    //       } else {
+
+    //         let marketDataMap = new Map<string, MarketSummary>(marketData.result.map((i) => [i.MarketName, i]));
+
+    //         dollars = marketDataMap.get("USDT-BTC").Last;
+
+    //         balanceData.result.forEach((coin: AccountBalance) => {
+
+    //           if (coin.Balance > 0) {
+
+    //             let coinWatch: CoinWatch;
+
+    //             if (coin.Currency === "BTC") {
+    //               bitcoins += coin.Balance;
+    //               coinWatch = new CoinWatch(coin.Currency, "USDT", coin.Balance, dollars, coin.Balance, coin.Balance * dollars);
+    //             } else if (coin.Currency != "USDT") {
+    //               let unitValue = marketDataMap.get("BTC-" + coin.Currency).Last;
+    //               bitcoins += coin.Balance * unitValue;
+    //               coinWatch = new CoinWatch(coin.Currency, "BTC", coin.Balance, unitValue, coin.Balance * unitValue, coin.Balance * unitValue * dollars);
+    //             } else if (coin.Currency === "USDT") {
+    //               let unitValue = 1 / dollars;
+    //               coinWatch = new CoinWatch(coin.Currency, "BTC", coin.Balance, unitValue, coin.Balance * unitValue, coin.Balance * unitValue * dollars);
+    //             }
+
+    //             coins.push(coinWatch);
+
+    //           }
+    //         });
+
+    //         this.balanceBTC = bitcoins;
+    //         this.estUSD = dollars * bitcoins;
+    //         this._observableList.next(coins);
+    //       }
+    //     });
+
+
+    //   }
+    // });
+
+    // if (refresher != null) {
+    //   refresher.complete();
+    // }
   }
 
   doRefresh(refresher: Refresher) {

@@ -10,6 +10,7 @@ import { StatusBar } from '@ionic-native/status-bar';
 import { SplashScreen } from '@ionic-native/splash-screen';
 
 import { IonicStorageModule } from '@ionic/storage';
+import { BittrexService } from '../pages/home/bittrex.service';
 
 @NgModule({
   declarations: [
@@ -31,7 +32,9 @@ import { IonicStorageModule } from '@ionic/storage';
   providers: [
     StatusBar,
     SplashScreen,
-    {provide: ErrorHandler, useClass: IonicErrorHandler}
+    Storage,
+    {provide: ErrorHandler, useClass: IonicErrorHandler},
+    BittrexService
   ]
 })
 export class AppModule {}

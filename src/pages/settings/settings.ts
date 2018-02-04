@@ -3,6 +3,7 @@ import { NavController, NavParams, ToastController } from 'ionic-angular';
 import { Storage } from '@ionic/storage';
 import { FormGroup } from '@angular/forms/src/model';
 import { FormBuilder } from "@angular/forms";
+import { BittrexService } from '../home/bittrex.service';
 
 @Component({
   selector: 'page-settings',
@@ -12,7 +13,7 @@ export class SettingsPage {
   api: any;
   apiCredentialsForm: FormGroup;
 
-  constructor(public navCtrl: NavController, public navParams: NavParams, private storage: Storage, public formBuilder: FormBuilder, public toastCtrl: ToastController) {
+  constructor(public navCtrl: NavController, public navParams: NavParams, private storage: Storage, public formBuilder: FormBuilder, public toastCtrl: ToastController, public bittrexService: BittrexService) {
     this.api = {};
 
     storage.get('apiCredentials').then((val) => {
@@ -40,5 +41,7 @@ export class SettingsPage {
       duration: 3000
     });
     toast.present();
+
+    this.bittrexService.init(this.api.key, this.api.secret);
   }
 }

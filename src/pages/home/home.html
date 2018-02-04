@@ -3,7 +3,7 @@
     <button ion-button menuToggle>
       <ion-icon name="menu"></ion-icon>
     </button>
-    <ion-title>Home</ion-title>
+    <ion-title>{{balanceBTC | number:'0.0-8'}} BTC / {{estUSD | currency}} </ion-title>
   </ion-navbar>
 </ion-header>
 
@@ -14,27 +14,6 @@
   </ion-refresher>
 
   <ion-list>
-
-    <ion-item>
-      Balance
-      <ion-note item-end>
-        {{balanceBTC | number:'0.0-8'}} BTC
-      </ion-note>
-    </ion-item>
-
-    <ion-item>
-      Estimated value
-      <ion-note item-end>
-        {{estUSD | currency}}
-      </ion-note>
-    </ion-item>
-  </ion-list>
-
-  <ion-list>
-    <ion-list-header>
-      Wallets
-    </ion-list-header>
-
     <ion-item *ngFor="let coin of observableList | async">
       <h2>{{ coin.coin }} / {{ coin.market }}</h2>
       <p>{{ coin.unitValue | number:'0.0-8'}} / unit</p>
