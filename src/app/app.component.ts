@@ -5,8 +5,6 @@ import { SplashScreen } from '@ionic-native/splash-screen';
 
 import { HomePage } from '../pages/home/home';
 import { SettingsPage } from '../pages/settings/settings';
-import { BittrexService } from '../pages/home/bittrex.service';
-import { Storage } from '@ionic/storage';
 
 @Component({
   templateUrl: 'app.html'
@@ -18,7 +16,7 @@ export class MyApp {
 
   pages: Array<{ title: string, component: any }>;
 
-  constructor(public platform: Platform, public statusBar: StatusBar, public splashScreen: SplashScreen, public bittrexService: BittrexService, public storage: Storage) {
+  constructor(public platform: Platform, public statusBar: StatusBar, public splashScreen: SplashScreen) {
     this.initializeApp();
 
     // used for an example of ngFor and navigation
@@ -34,10 +32,7 @@ export class MyApp {
       // Okay, so the platform is ready and our plugins are available.
       // Here you can do any higher level native things you might need.
       this.statusBar.styleDefault();
-      this.splashScreen.hide();
-      this.storage.get('apiCredentials').then((val) => {
-        this.bittrexService.init(val.key, val.secret);
-      });
+      this.splashScreen.hide();  
     });
   }
 

@@ -4,13 +4,13 @@ import * as bittrex from 'node-bittrex-api';
 @Injectable()
 export class BittrexService {
 
-
+    
     constructor() {
 
     }
 
     init(apiKey: String, apiSecret: String) {
-
+        
         bittrex.options({
             'apikey': apiKey,
             'apisecret': apiSecret
@@ -57,6 +57,7 @@ export class BittrexService {
 
         return marketSummaryMap;
     }
+
 
 }
 

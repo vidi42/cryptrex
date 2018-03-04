@@ -10,6 +10,7 @@ import { StatusBar } from '@ionic-native/status-bar';
 import { SplashScreen } from '@ionic-native/splash-screen';
 
 import { IonicStorageModule } from '@ionic/storage';
+import { BITTREX_INITIALIZER } from '../pages/home/bittrex-initializer';
 import { BittrexService } from '../pages/home/bittrex.service';
 
 @NgModule({
@@ -32,9 +33,9 @@ import { BittrexService } from '../pages/home/bittrex.service';
   providers: [
     StatusBar,
     SplashScreen,
-    Storage,
-    {provide: ErrorHandler, useClass: IonicErrorHandler},
-    BittrexService
+    { provide: ErrorHandler, useClass: IonicErrorHandler },
+    BittrexService,
+    BITTREX_INITIALIZER
   ]
 })
-export class AppModule {}
+export class AppModule { }

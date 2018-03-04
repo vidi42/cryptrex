@@ -1,20 +1,5 @@
 'use strict';
 
-/* Bittrex domains */
-
-export class MarketSummary {
-
-    MarketName: string;
-    Last: number;
-
-}
-
-export class AccountBalance {
-    Currency: string;
-    Balance: number;
-
-}
-
 /* Cryptrex domains */
 
 export class CoinWatch {
